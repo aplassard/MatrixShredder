@@ -15,5 +15,9 @@ class Groups(object):
         self.ids = []
         features = []
         for line in f:
+            line = line.strip().split('\t')
+            self.ids.append(line[self.id])
+            features.append(line[self.start:self.end])
+        self.features = np.array(features,dtype=float)
 
 
