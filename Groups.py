@@ -1,4 +1,7 @@
-import numpypy
+try:
+    import numpypy
+except:
+    pass
 import numpy as np
 
 class Groups(object):
@@ -10,14 +13,13 @@ class Groups(object):
         f = open(self.file_name)
         for i in range(header):
             line = f.readline().strip().split('\t')
-            if i + 1 == header_name:
+            if i + 1 == header_names:
                 self.header_names = line[self.start:self.end]
         self.ids = []
         features = []
         for line in f:
-            line = line.strip().split('\t')
+            line = line.rstrip().split('\t')
             self.ids.append(line[self.id])
-            features.append(line[self.start:self.end])
+            features.append([float(a) for a in line[self.start:self.end]])
         self.features = np.array(features,dtype=float)
-
-
+        del features
