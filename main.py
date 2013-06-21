@@ -6,6 +6,10 @@ except:
 import numpy as np
 from Groups import Groups
 from Shred import Shred
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import Pycluster
+from scipy.cluster.vq import kmeans2
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Lets Shred Some Matrices')
@@ -23,21 +27,48 @@ def parse_args():
     parser.add_argument("--source",type=str,help="Source for ToppGene Output",required=True)
     parser.add_argument("--url",type=str,help="URL for ToppGene Output",required=True)
     parser.add_argument("--counts",type=str,help="Counts for K-Meansing, comma separated list",required=True)
+    parser.add_argument("-k",type=int,help="K for K-Means",required=False,default=5)
+    parser.add_argument("--distance",type=str,help="distance metric",required=False,default="c")
     args = parser.parse_args()
-    args.groups_id_column -= 1
     args.shred_id_column -= 1
     if not args.groups_entrez_column: args.groups_entrez_column = args.groups_id_column
+    args.groups_entrez_column -= 1
+    args.groups_id_column -= 1
     args.groups_feature_column -= 1
     args.counts = [int(a) for a in args.counts.split(",")]
     return args
 
 def main():
     args = parse_args()
-    groups = Groups(args.groups_input,args.groups_header_count,args.groups_id_column,args.groups_header_names,args.groups_feature_column,args.groups_feature_end)
+    groups = Groups(args.groups_input,args.groups_header_count,args.groups_id_column,args.groups_header_names,args.groups_entrez_column,args.groups_feature_column,args.groups_feature_end)
     shred = Shred(args.groups_input,args.groups_header_count,args.groups_id_column,args.groups_feature_column,args.groups_feature_end)
+    o = open(args.output,'w')
     for count in args.counts:
-        for group in groups.run(count):
+        gen = groups.run(count,args.source,args.url)
+        for group,name in gen:
+            name += "_" + str(count)
             mat = shred.get_matrix(group)
+            print name,
+#            scaler = StandardScaler().fit(mat)
+#            mat = scaler.transform(mat)
+#            kmeans = KMeans(n_clusters=args.k, init='k-means++',max_iter=10000,n_init=100)
+#            kmeans.fit(mat)
+#            labels = kmeans.labels_
+            labels,error,nfound = Pycluster.kcluster(mat,args.k,dist=args.distance)
+#            centroid,labels = kmeans2(mat,args.k)
+            d = {}
+            for el in labels: d[el] = d.get(el,0)+1
+            print d,
+            print "Final Error: %s" % error
+            for i in xrange(len(group)):
+                entrez = groups.entrez_map[group[i]]
+                o.write('\t'.join([group[i],entrez,args.source,args.url,name]))
+                o.write('\n')
+                k_name = name + "_K"+str(labels[i])
+                o.write('\t'.join([group[i],entrez,args.source,args.url,k_name]))
+                o.write('\n')
+
+
 
 def target(*args):
     main,None
