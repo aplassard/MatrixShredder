@@ -5,6 +5,7 @@ except:
     pass
 import numpy as np
 from Groups import Groups
+from Shred import Shred
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Lets Shred Some Matrices')
@@ -31,6 +32,7 @@ def parse_args():
 def main():
     args = parse_args()
     groups = Groups(args.groups_input,args.groups_header_count,args.groups_id_column,args.groups_header_names,args.groups_feature_column,args.groups_feature_end)
+    shred = Shred(args.groups_input,args.groups_header_count,args.groups_id_column,args.groups_feature_column,args.groups_feature_end)
 
 def target(*args):
     main,None
