@@ -20,6 +20,19 @@ class Groups(object):
         for line in f:
             line = line.rstrip().split('\t')
             self.ids.append(line[self.id])
-            features.append([float(a) for a in line[self.start:self.end]])
+            features.append(line[self.start:self.end])
         self.features = np.array(features,dtype=float)
         del features
+
+    def run(self,n):
+        for i in range(len(self.header_names)):
+            indices = self._get_n_max(n,i)
+            yield [self.ids[idx] for idx in indices]
+
+    def _get_n_max(self,n,i):
+        arr = self.features[:,i]
+        indices = arr.argsort()[-n:][::-1]
+        return indices
+
+        
+
