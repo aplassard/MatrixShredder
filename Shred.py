@@ -16,4 +16,4 @@ class Shred(object):
         self.feature_map = {}
         for line in f:
             line = line.rstrip().split('\t')
-            self.feature_map[line[self.id]] = np.array(line[self.start:self.end])
+            self.feature_map[line[self.id]] = np.array(line[self.start:self.end],dtype=float)
