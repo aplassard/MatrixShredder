@@ -37,7 +37,7 @@ def main():
     shred = Shred(args.groups_input,args.groups_header_count,args.groups_id_column,args.groups_feature_column,args.groups_feature_end)
     for count in args.counts:
         for group in groups.run(count):
-            mat = shreds.get_marix(group)
+            mat = shred.get_matrix(group)
 
 def target(*args):
     main,None
