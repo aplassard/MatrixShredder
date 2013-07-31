@@ -13,8 +13,9 @@ class Shred(object):
         f = open(self.file_name)
         features = []
         ids = []
-        for i in range(header):
+        for i in range(header-1):
             line = f.readline().strip().split('\t')
+        self.headers = f.readline().strip().split("\t")[id+1:]
         self.feature_map = {}
         for line in f:
             line = line.rstrip().split('\t')

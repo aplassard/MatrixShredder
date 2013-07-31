@@ -6,10 +6,11 @@ except:
 import numpy as np
 from Groups import Groups
 from Shred import Shred
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
+#from sklearn.cluster import KMeans
+#from sklearn.preprocessing import StandardScaler
 import Pycluster
-from scipy.cluster.vq import kmeans2
+#from scipy.cluster.vq import kmeans2
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Lets Shred Some Matrices')
@@ -24,6 +25,7 @@ def parse_args():
     parser.add_argument("--groups-feature-column",type=int,help="The column containing the first feature for the rows in the groups file, 1-based",required=True)
     parser.add_argument("--groups-feature-end",type=int,help="The column containing the last feature for the rows in the groups file, 1-based",required=False,default=-1)
     parser.add_argument("--output",type=str,help="Output File",required=True)
+    parser.add_argument("--output-dir",type=str,help="Directory to write output files to", required = False, default=".")
     parser.add_argument("--source",type=str,help="Source for ToppGene Output",required=True)
     parser.add_argument("--url",type=str,help="URL for ToppGene Output",required=True)
     parser.add_argument("--counts",type=str,help="Counts for K-Meansing, comma separated list",required=True)
@@ -36,6 +38,7 @@ def parse_args():
     args.groups_id_column -= 1
     args.groups_feature_column -= 1
     args.counts = [int(a) for a in args.counts.split(",")]
+    if not os.path.exists(args.output_dir): os.makedirs(args.output_dir)
     return args
 
 def main():
@@ -49,13 +52,15 @@ def main():
             name += "_" + str(count)
             mat = shred.get_matrix(group)
             print name,
-#            scaler = StandardScaler().fit(mat)
-#            mat = scaler.transform(mat)
-#            kmeans = KMeans(n_clusters=args.k, init='k-means++',max_iter=10000,n_init=100)
-#            kmeans.fit(mat)
-#            labels = kmeans.labels_
-            labels,error,nfound = Pycluster.kcluster(mat,args.k,dist=args.distance)
-#            centroid,labels = kmeans2(mat,args.k)
+            R = Pycluster.Record()
+            R.data = mat
+            R.geneid = group
+            R.uniqid = name
+            R.expid = shred.headers
+            labels,error,nfound = R.kcluster(nclusters = args.k,dist=args.distance)
+            R.save(os.path.join(args.output_dir,name),geneclusters=labels)
+            tree = R.treecluster(method='a',dist = args.distance)
+            R.save(os.path.join(args.output_dir,name),geneclusters=tree)
             d = {}
             for el in labels: d[el] = d.get(el,0)+1
             print d,

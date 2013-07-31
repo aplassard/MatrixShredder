@@ -16,7 +16,7 @@ class Groups(object):
         for i in range(header):
             line = f.readline().strip().split('\t')
             if i + 1 == header_names:
-                self.header_names = line[self.start:self.end]
+                self.header_names = line[self.start+1:self.end]
         self.ids = []
         features = []
         for line in f:
